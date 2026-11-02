@@ -1,0 +1,23 @@
+UMOWA LICENCYJNA UŻYTKOWNIKA KOŃCOWEGO (EULA)
+Program: mkTabliczka
+Autor: Krzysztof Markowski
+markowski@gdansk.home.pl
+
+Przed rozpoczęciem instalacji i korzystania z programu "mkTabliczka", prosimy o uważne zapoznanie się z poniższymi warunkami. Instalacja, kopiowanie lub używanie tego oprogramowania oznacza akceptację niniejszej umowy.
+
+1. PRAWA AUTORSKIE
+Wszelkie prawa autorskie i majątkowe do programu "mkTabliczka" (w tym kodu, grafiki, dźwięków i mechaniki) należą wyłącznie do jego twórcy, Krzysztofa Markowskiego. Program jest chroniony prawem autorskim oraz międzynarodowymi traktatami o prawach autorskich.
+
+2. CHARAKTER LICENCJI (EDUKACYJNY I BEZPŁATNY)
+Autor udziela niewyłącznej, darmowej licencji na korzystanie z programu. Aplikacja "mkTabliczka" została stworzona jako darmowe narzędzie edukacyjne i może być używana bezpłatnie przez dzieci do nauki tabliczki mnożenia w środowisku domowym oraz szkolnym.
+
+3. OGRANICZENIA KOMERCYJNE
+Surowo zabrania się wykorzystywania programu "mkTabliczka" w jakichkolwiek celach komercyjnych lub zarobkowych. Oprogramowania nie wolno sprzedawać, wynajmować, dzierżawić, ani pobierać jakichkolwiek opłat za jego udostępnianie. 
+
+4. DYSTRYBUCJA I MODYFIKACJE
+Program może być swobodnie kopiowany i przekazywany innym osobom fizycznym i instytucjom oświatowym za darmo, pod warunkiem, że przekazywany jest w oryginalnej, niezmienionej formie (jako kompletny instalator). Zabrania się modyfikowania kodu, dekompilacji, inżynierii wstecznej oraz wyodrębniania z programu jego zasobów (np. plików dźwiękowych i graficznych).
+
+5. WYŁĄCZENIE ODPOWIEDZIALNOŚCI
+Program jest dostarczany w stanie "takim, w jakim jest" (AS IS), bez jakichkolwiek gwarancji, wyraźnych czy dorozumianych. Autor (Krzysztof Markowski) nie ponosi odpowiedzialności za jakiekolwiek szkody (w tym utratę danych, uszkodzenia sprzętu czy inne straty) wynikające z używania lub niemożności używania tego oprogramowania.
+
+Jeśli nie zgadzasz się z powyższymi warunkami, przerwij instalację i usuń wszystkie pliki programu ze swojego dysku.
