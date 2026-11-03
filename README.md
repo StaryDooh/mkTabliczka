@@ -2,7 +2,7 @@
 
 Gra edukacyjna do ćwiczenia tabliczki mnożenia.
 
-Na dole ekranu pojawia się działanie, a z góry spadają kulki z liczbami. Zadaniem gracza jest zestrzelenie kulki z prawidłowym wynikiem, zanim spadnie poza ekran. Gra stopniowo przyspiesza i wprowadza coraz trudniejsze działania, a po każdej pomyłce pokazuje prawidłowe równanie do zapamiętania.
+Na tablicy armatki na dole ekranu pojawia się działanie, a z góry spadają kulki z liczbami. Zadaniem gracza jest zestrzelenie kulki z prawidłowym wynikiem, zanim spadnie poza ekran. Gra stopniowo przyspiesza i wprowadza coraz trudniejsze działania, a po każdej pomyłce pokazuje prawidłowe równanie do zapamiętania.
 
 Gra jest przeznaczona dla uczniów szkoły podstawowej i sprawdza się zarówno w domu, jak i w szkolnej pracowni komputerowej.
 
@@ -10,7 +10,7 @@ Gra jest przeznaczona dla uczniów szkoły podstawowej i sprawdza się zarówno 
 
 ## Instalacja
 
-1. Pobierz plik **mkTabliczka_Instalator.exe**.
+1. Pobierz najnowszy plik instalacyjny `Setup_mkTabliczka_<wersja>.exe` (np. `Setup_mkTabliczka_1.6.0.0.exe`).
 2. Uruchom go i postępuj zgodnie z instrukcjami na ekranie.
 3. Grę uruchomisz skrótem **mkTabliczka** z Menu Start lub z Pulpitu.
 
@@ -28,7 +28,7 @@ Wymagania: Windows 10 lub 11 (64-bitowy). Instalacja wymaga uprawnień administr
 | Enter | Zatwierdzenie imienia w tabeli rekordów |
 | ESC | Wyjście z gry |
 
-Czerwony laser pokazuje, dokąd poleci pocisk. Pociski odbijają się od bocznych i górnej krawędzi ekranu, więc kulki można trafiać także „z odbicia”. Strzelać można tylko w górę.
+Podczas gry kursor myszy zamienia się w celownik, a armatka obraca lufę w jego stronę. Czerwony laser pokazuje, dokąd poleci pocisk. Pociski odbijają się od bocznych i górnej krawędzi ekranu, więc kulki można trafiać także „z odbicia”.
 
 ---
 
@@ -68,4 +68,4 @@ Na kulkach z błędnymi odpowiedziami pojawiają się liczby podobne do prawidł
 
 Gra zapamiętuje **10 najlepszych wyników**. Jeśli Twój wynik zmieści się w tabeli, wpisz swoje imię (do 10 znaków) i naciśnij Enter. Tabela jest widoczna na ekranie startowym.
 
-Rekordy są zapisywane osobno dla każdego konta użytkownika Windows i zostają zachowane po aktualizacji gry.
+Tabela jest wspólna dla wszystkich osób korzystających z komputera — także wtedy, gdy logują się na różne konta Windows. Rekordy zostają zachowane po aktualizacji gry.

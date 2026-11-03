@@ -7,7 +7,7 @@ import json
 import base64
 
 # --- Wersja i Nazwa Gry ---
-APP_VERSION = "1.5"
+APP_VERSION = "1.6.0.0"
 GAME_TITLE = f"Strzelnica \"Mnożenie\" v{APP_VERSION}"
 
 # --- Ścieżki do zasobów (działa też po spakowaniu PyInstallerem) ---
@@ -18,36 +18,101 @@ def resource_path(name):
 # --- System Zapisywania i "Szyfrowania" Rekordów ---
 SECRET_KEY = "matematyka_sekret_2026"
 
-appdata_dir = os.environ.get('APPDATA') or os.path.expanduser("~")
-game_dir = os.path.join(appdata_dir, "mkTabliczka")
-os.makedirs(game_dir, exist_ok=True)
+APP_FOLDER = "mkTabliczka"
+SCORE_FILENAME = "rekordy.dat"
 
-SCORE_FILE = os.path.join(game_dir, "rekordy.dat")
+def is_dir_writable(path):
+    """Sprawdza, czy w folderze można tworzyć i zapisywać pliki."""
+    try:
+        os.makedirs(path, exist_ok=True)
+        test_file = os.path.join(path, f".test_zapisu_{os.getpid()}")
+        with open(test_file, "w") as f:
+            f.write("ok")
+        os.remove(test_file)
+        return True
+    except OSError:
+        return False
+
+# Rekordy wspólne dla wszystkich użytkowników komputera (%PROGRAMDATA%).
+# Gdy folder nie jest zapisywalny, gra korzysta z prywatnego %APPDATA%.
+programdata_dir = os.path.join(os.environ.get('PROGRAMDATA') or "", APP_FOLDER)
+appdata_dir = os.path.join(os.environ.get('APPDATA') or os.path.expanduser("~"), APP_FOLDER)
+
+if os.environ.get('PROGRAMDATA') and is_dir_writable(programdata_dir):
+    game_dir = programdata_dir
+else:
+    game_dir = appdata_dir
+    os.makedirs(game_dir, exist_ok=True)
+    print(f"Brak dostępu do wspólnego folderu rekordów - używam: {game_dir}")
+
+SCORE_FILE = os.path.join(game_dir, SCORE_FILENAME)
+OLD_SCORE_FILE = os.path.join(appdata_dir, SCORE_FILENAME)  # rekordy z wersji 1.5 i starszych
 
 def xor_cipher(text):
     return "".join(chr(ord(c) ^ ord(SECRET_KEY[i % len(SECRET_KEY)])) for i, c in enumerate(text))
 
-def save_highscores(scores):
-    scores = sorted(scores, key=lambda x: x['score'], reverse=True)[:10]
-    data_str = json.dumps(scores)
-    encrypted_str = xor_cipher(data_str)
-    b64_bytes = base64.b64encode(encrypted_str.encode('utf-8'))
-    with open(SCORE_FILE, "wb") as f:
-        f.write(b64_bytes)
+def sort_scores(scores):
+    return sorted(scores, key=lambda x: x['score'], reverse=True)[:10]
 
-def load_highscores():
-    if not os.path.exists(SCORE_FILE):
-        return []
+def read_scores_file(path):
+    """Odczytuje rekordy z pliku. Zwraca None, gdy pliku nie ma lub jest uszkodzony."""
+    if not os.path.exists(path):
+        return None
     try:
-        with open(SCORE_FILE, "rb") as f:
+        with open(path, "rb") as f:
             b64_bytes = f.read()
         encrypted_str = base64.b64decode(b64_bytes).decode('utf-8')
         data_str = xor_cipher(encrypted_str)
         scores = json.loads(data_str)
-        return sorted(scores, key=lambda x: x['score'], reverse=True)[:10]
+        return [s for s in scores if isinstance(s, dict) and 'name' in s and 'score' in s]
     except Exception:
-        print("Błąd odczytu rekordów lub plik uszkodzony. Zaczynamy od zera.")
+        return None
+
+def save_highscores(scores):
+    """Zapisuje rekordy przez plik tymczasowy, aby przerwany zapis nie uszkodził tabeli."""
+    data_str = json.dumps(sort_scores(scores))
+    encrypted_str = xor_cipher(data_str)
+    b64_bytes = base64.b64encode(encrypted_str.encode('utf-8'))
+    tmp_file = f"{SCORE_FILE}.{os.getpid()}.tmp"
+    try:
+        with open(tmp_file, "wb") as f:
+            f.write(b64_bytes)
+        os.replace(tmp_file, SCORE_FILE)
+        return True
+    except OSError as e:
+        print(f"Nie udało się zapisać rekordów: {e}")
+        try:
+            os.remove(tmp_file)
+        except OSError:
+            pass
+        return False
+
+def load_highscores():
+    scores = read_scores_file(SCORE_FILE)
+    if scores is None:
+        if os.path.exists(SCORE_FILE):
+            print("Błąd odczytu rekordów lub plik uszkodzony. Zaczynamy od zera.")
         return []
+    return sort_scores(scores)
+
+def migrate_old_highscores():
+    """Przenosi prywatne rekordy użytkownika (wersja 1.5) do wspólnej tabeli."""
+    if game_dir == appdata_dir or not os.path.exists(OLD_SCORE_FILE):
+        return
+    old_scores = read_scores_file(OLD_SCORE_FILE)
+    if old_scores:
+        merged = load_highscores()
+        for record in old_scores:
+            if record not in merged:
+                merged.append(record)
+        if not save_highscores(merged):
+            return  # Nie udało się zapisać - spróbujemy przy następnym uruchomieniu
+    try:
+        os.replace(OLD_SCORE_FILE, OLD_SCORE_FILE + ".przeniesiony")
+    except OSError:
+        pass
+
+migrate_old_highscores()
 
 # --- Konfiguracja Gry ---
 pygame.init()
@@ -71,12 +136,27 @@ GREEN = (46, 204, 113)
 RED = (231, 76, 60)
 BLUE = (52, 152, 219)
 GRAY = (149, 165, 166)
-GUN_COLOR = (149, 165, 166)
 DARK_BG = (26, 37, 47)
 LASER_COLOR = (255, 0, 0, 120)
 BULLET_BOUNCE_SPEED = 12
 MAX_BULLET_BOUNCES = 5      # tyle samo odbić, ile pokazuje laser
-MIN_SHOT_DY = -10           # strzał musi iść wyraźnie w górę
+MIN_AIM_DEG = 12            # najmniejszy kąt lufy nad poziomem (w stopniach)
+RECOIL_TIME = 120           # ms - czas odrzutu lufy po strzale
+FLASH_TIME = 80             # ms - czas błysku z lufy
+
+# Wygląd armatki
+CANNON_BARREL_LEN = 125
+CANNON_DOME_R = 50
+CANNON_BASE_W = 340
+CANNON_BASE_H = 92
+STEEL_DARK = (44, 52, 60)
+STEEL = (78, 90, 102)
+STEEL_LIGHT = (140, 154, 168)
+OUTLINE = (20, 26, 32)
+GROUND_COLOR = (34, 49, 63)
+
+# Stany, w których zamiast kursora myszy widać celownik
+GAME_STATES = ('PLAYING', 'CHALLENGE_MODE', 'LEVEL_UP', 'MASTER_STREAK', 'SHOW_CORRECTION_MSG')
 NAME_MAX_LEN = 10
 GAME_OVER_DELAY = 1000      # ms blokady kliknięć na ekranie końcowym
 
@@ -165,6 +245,31 @@ class Bullet:
     def draw(self):
         pygame.draw.circle(screen, RED, (int(self.x), int(self.y)), self.radius)
 
+def draw_barrel_part(pivot, angle, x0, x1, w0, w1, color):
+    """Rysuje fragment lufy (trapez) obrócony o kąt wokół punktu pivot."""
+    ca, sa = math.cos(angle), math.sin(angle)
+    nx, ny = -sa, ca
+    px, py = pivot
+    points = [
+        (px + ca * x0 + nx * w0 / 2, py + sa * x0 + ny * w0 / 2),
+        (px + ca * x1 + nx * w1 / 2, py + sa * x1 + ny * w1 / 2),
+        (px + ca * x1 - nx * w1 / 2, py + sa * x1 - ny * w1 / 2),
+        (px + ca * x0 - nx * w0 / 2, py + sa * x0 - ny * w0 / 2),
+    ]
+    pygame.draw.polygon(screen, color, points)
+    pygame.draw.polygon(screen, OUTLINE, points, 2)
+
+def draw_crosshair(pos, color):
+    """Celownik w miejscu kursora (z ciemnym obrysem, widoczny na każdym tle)."""
+    x, y = pos
+    for c, w in ((OUTLINE, 5), (color, 2)):
+        pygame.draw.circle(screen, c, (x, y), 16, w)
+        pygame.draw.line(screen, c, (x - 24, y), (x - 8, y), w)
+        pygame.draw.line(screen, c, (x + 8, y), (x + 24, y), w)
+        pygame.draw.line(screen, c, (x, y - 24), (x, y - 8), w)
+        pygame.draw.line(screen, c, (x, y + 8), (x, y + 24), w)
+    pygame.draw.circle(screen, RED, (x, y), 3)
+
 class Game:
     def __init__(self):
         self.state = 'START'
@@ -180,8 +285,9 @@ class Game:
         self.targets = []
         self.bullets = []
         self.frames = 0
-        self.player_pos = (WIDTH // 2, HEIGHT - 30)
-        self.player_radius = 25
+        # Środek obrotu lufy - na szczycie podstawy armatki
+        self.player_pos = (WIDTH // 2, HEIGHT - CANNON_BASE_H)
+        self.last_shot_time = -10000
         self.laser_line_segments = []
         self.current_level = 1
         self.level_up_time = 0
@@ -210,6 +316,8 @@ class Game:
             self.check_highscore()
 
     def check_highscore(self):
+        # Tabela jest wspólna - mogła się zmienić, gdy grał ktoś inny
+        self.highscores = load_highscores()
         is_highscore = False
         if len(self.highscores) < 10:
             is_highscore = True
@@ -226,6 +334,7 @@ class Game:
     def save_current_record(self):
         """Zapisuje wynik z wpisanym imieniem (lub 'Anonim')."""
         name = self.player_name_input.strip() or "Anonim"
+        self.highscores = load_highscores()  # najświeższa wersja wspólnej tabeli
         self.highscores.append({'name': name, 'score': self.score})
         save_highscores(self.highscores)
         self.highscores = load_highscores()
@@ -326,22 +435,29 @@ class Game:
         color_theme = LEVEL_COLORS.get(level, LEVEL_COLORS[4])
         self.targets.append(Target(x, -30, value, is_correct, speed, 30, color_theme['bg'], color_theme['text']))
 
-    def shoot(self, target_x, target_y):
-        dx = target_x - self.player_pos[0]
-        dy = target_y - self.player_pos[1]
-        if dy > MIN_SHOT_DY:
-            return  # Strzał poziomy lub w dół - ignorujemy
-        if sound_shoot: sound_shoot.play()
+    def aim_angle(self, mouse_pos):
+        """Kąt lufy w stronę kursora, ograniczony do górnej półpłaszczyzny.
+        Zwraca (kąt, czy_ograniczony)."""
+        dx = mouse_pos[0] - self.player_pos[0]
+        dy = mouse_pos[1] - self.player_pos[1]
         angle = math.atan2(dy, dx)
+        limit = math.radians(MIN_AIM_DEG)
+        # Kąty w górę są ujemne: od -pi (w lewo) do 0 (w prawo)
+        if -math.pi + limit <= angle <= -limit:
+            return angle, False
+        if dx >= 0:
+            return -limit, True
+        return -math.pi + limit, True
+
+    def shoot(self, mouse_pos):
+        if sound_shoot: sound_shoot.play()
+        angle, _ = self.aim_angle(mouse_pos)
+        self.last_shot_time = pygame.time.get_ticks()
         self.bullets.append(Bullet(self.player_pos[0], self.player_pos[1], angle, 6, BULLET_BOUNCE_SPEED))
 
     def calculate_laser_line(self, mouse_pos):
         self.laser_line_segments = []
-        dx = mouse_pos[0] - self.player_pos[0]
-        dy = mouse_pos[1] - self.player_pos[1]
-        if dy > MIN_SHOT_DY:
-            return  # Tam nie da się strzelić - nie pokazujemy lasera
-        current_angle = math.atan2(dy, dx)
+        current_angle, _ = self.aim_angle(mouse_pos)
         start_point = self.player_pos
         segments_drawn = 0
 
@@ -434,7 +550,7 @@ class Game:
 
         elif self.state in ['PLAYING', 'CHALLENGE_MODE']:
             if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-                self.shoot(mouse_pos[0], mouse_pos[1])
+                self.shoot(mouse_pos)
 
         elif self.state == 'INPUT_NAME':
             if event.type == pygame.KEYDOWN:
@@ -451,6 +567,7 @@ class Game:
             if pygame.time.get_ticks() - self.game_over_time < GAME_OVER_DELAY:
                 return  # Chronimy przed przeklikaniem ekranu końcowego
             if is_click or is_space:
+                self.highscores = load_highscores()
                 self.state = 'START'
 
     def update(self):
@@ -633,13 +750,7 @@ class Game:
             for t in self.targets: t.draw()
             for b in self.bullets: b.draw()
 
-            dx = mouse_pos[0] - self.player_pos[0]
-            dy = mouse_pos[1] - self.player_pos[1]
-            angle = math.atan2(dy, dx)
-            end_x = self.player_pos[0] + math.cos(angle) * 40
-            end_y = self.player_pos[1] + math.sin(angle) * 40
-            pygame.draw.line(screen, GUN_COLOR, self.player_pos, (end_x, end_y), 20)
-            pygame.draw.circle(screen, (127, 140, 141), self.player_pos, self.player_radius)
+            self.draw_cannon(mouse_pos)
 
             score_text = font_medium.render(f"Punkty: {self.score}", True, GREEN)
             level_text = font_medium.render(f"Poziom: {self.get_level()}", True, YELLOW)
@@ -652,15 +763,6 @@ class Game:
             screen.blit(esc_hint, (20, 100))
             screen.blit(streak_text, (20, 130))
             screen.blit(lives_text, (WIDTH - 120, 20))
-
-            problem_text = font_large.render(f"{self.a} x {self.b} = ?", True, YELLOW)
-            prob_rect = problem_text.get_rect(center=(WIDTH // 2, HEIGHT - 50))
-            bg_rect = prob_rect.inflate(40, 20)
-
-            box_border_color = RED if self.state == 'CHALLENGE_MODE' else YELLOW
-            pygame.draw.rect(screen, DARK_BG, bg_rect, border_radius=15)
-            pygame.draw.rect(screen, box_border_color, bg_rect, 3, border_radius=15)
-            screen.blit(problem_text, prob_rect)
 
             if self.state == 'CHALLENGE_MODE':
                 challenge_hint = font_large.render("WYZWANIE: POPRAW BŁĄD!", True, RED)
@@ -695,9 +797,79 @@ class Game:
                 restart_text = font_medium.render("Kliknij myszką lub naciśnij SPACJĘ, aby wrócić do menu", True, YELLOW)
                 screen.blit(restart_text, restart_text.get_rect(center=(WIDTH // 2, HEIGHT // 2 + 100)))
 
+
+        # Celownik zamiast kursora myszy (rysowany na samym wierzchu)
+        if self.state in ('PLAYING', 'CHALLENGE_MODE'):
+            _, limited = self.aim_angle(mouse_pos)
+            draw_crosshair(mouse_pos, GRAY if limited else WHITE)
+
+    def draw_cannon(self, mouse_pos):
+        """Rysuje armatkę: lufę, wieżyczkę i podstawę z tablicą działania."""
+        cx, cy = self.player_pos
+        angle, _ = self.aim_angle(mouse_pos)
+        now = pygame.time.get_ticks()
+        since_shot = now - self.last_shot_time
+
+        # Ziemia
+        pygame.draw.rect(screen, GROUND_COLOR, (0, HEIGHT - 24, WIDTH, 24))
+        pygame.draw.line(screen, OUTLINE, (0, HEIGHT - 24), (WIDTH, HEIGHT - 24), 2)
+
+        # Odrzut: lufa cofa się po strzale i płynnie wraca
+        recoil = 0
+        if since_shot < RECOIL_TIME:
+            recoil = 12 * (1 - since_shot / RECOIL_TIME)
+
+        # Lufa (rysowana pod wieżyczką)
+        start = 10 - recoil
+        end = CANNON_BARREL_LEN - recoil
+        draw_barrel_part((cx, cy), angle, start, end, 36, 28, STEEL)                 # rura
+        draw_barrel_part((cx, cy), angle, start + 52, start + 62, 40, 40, STEEL_DARK)  # pierścień
+        draw_barrel_part((cx, cy), angle, end - 16, end, 36, 36, STEEL_DARK)         # wylot
+        # Połysk wzdłuż górnej krawędzi lufy
+        nx, ny = -math.sin(angle), math.cos(angle)
+        if ny > 0:
+            nx, ny = -nx, -ny
+        p1 = (cx + math.cos(angle) * (start + 66) + nx * 7, cy + math.sin(angle) * (start + 66) + ny * 7)
+        p2 = (cx + math.cos(angle) * (end - 20) + nx * 6, cy + math.sin(angle) * (end - 20) + ny * 6)
+        pygame.draw.line(screen, STEEL_LIGHT, p1, p2, 3)
+
+        # Błysk z lufy
+        if since_shot < FLASH_TIME:
+            k = 1 - since_shot / FLASH_TIME
+            mx = cx + math.cos(angle) * (end + 10)
+            my = cy + math.sin(angle) * (end + 10)
+            pygame.draw.circle(screen, (243, 156, 18), (int(mx), int(my)), int(8 + 14 * k))
+            pygame.draw.circle(screen, (255, 236, 150), (int(mx), int(my)), int(4 + 8 * k))
+
+        # Wieżyczka (kopuła)
+        pygame.draw.circle(screen, STEEL, (cx, cy), CANNON_DOME_R)
+        pygame.draw.circle(screen, OUTLINE, (cx, cy), CANNON_DOME_R, 3)
+        pygame.draw.circle(screen, STEEL_LIGHT, (cx - 16, cy - 20), 10)  # odblask
+        pygame.draw.circle(screen, STEEL_DARK, (cx, cy), 15)            # oś obrotu
+        pygame.draw.circle(screen, OUTLINE, (cx, cy), 15, 2)
+
+        # Podstawa z tablicą działania
+        base = pygame.Rect(0, 0, CANNON_BASE_W, CANNON_BASE_H + 20)
+        base.midtop = (cx, cy)
+        pygame.draw.rect(screen, STEEL_DARK, base, border_top_left_radius=22, border_top_right_radius=22)
+        pygame.draw.rect(screen, OUTLINE, base, 3, border_top_left_radius=22, border_top_right_radius=22)
+        for rx in (base.left + 16, base.right - 16):  # nity
+            for ry in (base.top + 16, base.top + CANNON_BASE_H - 16):
+                pygame.draw.circle(screen, STEEL_LIGHT, (rx, ry), 4)
+                pygame.draw.circle(screen, OUTLINE, (rx, ry), 4, 1)
+
+        problem_text = font_large.render(f"{self.a} x {self.b} = ?", True, YELLOW)
+        plate = pygame.Rect(0, 0, CANNON_BASE_W - 70, CANNON_BASE_H - 22)
+        plate.center = (cx, cy + CANNON_BASE_H // 2)
+        border_color = RED if self.state == 'CHALLENGE_MODE' else YELLOW
+        pygame.draw.rect(screen, DARK_BG, plate, border_radius=12)
+        pygame.draw.rect(screen, border_color, plate, 3, border_radius=12)
+        screen.blit(problem_text, problem_text.get_rect(center=plate.center))
+
 # --- GŁÓWNA PĘTLA PROGRAMU ---
 game = Game()
 running = True
+cursor_visible = True
 
 while running:
     mouse_pos = pygame.mouse.get_pos()
@@ -719,6 +891,13 @@ while running:
         game.handle_event(event, mouse_pos)
 
     game.update()
+
+    # Podczas gry kursor myszy jest ukryty - zastępuje go celownik
+    want_cursor = game.state not in GAME_STATES
+    if want_cursor != cursor_visible:
+        pygame.mouse.set_visible(want_cursor)
+        cursor_visible = want_cursor
+
     game.draw(mouse_pos)
 
     pygame.display.flip()

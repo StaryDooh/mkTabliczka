@@ -7,7 +7,7 @@
 ; =========================================================
 
 #define MyAppName      "mkTabliczka"
-#define MyAppVersion   "1.5.0.0"
+#define MyAppVersion   "1.6.0.0"
 #define MyAppPublisher "Krzysztof Markowski"
 #define MyAppExeName   "tabliczka.exe"
 #define MyBuildDir     "dist\tabliczka"
@@ -37,7 +37,7 @@ ArchitecturesInstallIn64BitMode=x64compatible
 
 ; Folder docelowy i nazwa pliku instalatora
 OutputDir=GitHub
-OutputBaseFilename={#MyAppName}_{#MyAppVersion}
+OutputBaseFilename=Setup_{#MyAppName}_{#MyAppVersion}
 
 ; Ikony instalatora i wpisu w "Aplikacje i funkcje"
 SetupIconFile=ikona.ico
@@ -59,6 +59,10 @@ Name: "polish"; MessagesFile: "compiler:Languages\Polish.isl"
 [Tasks]
 ; Opcja utworzenia skrótu na pulpicie (domyślnie zaznaczona)
 Name: "desktopicon"; Description: "Utwórz skrót na Pulpicie"; GroupDescription: "Dodatkowe ikony:"
+
+[Dirs]
+; Wspólny folder rekordów - zapis dozwolony dla wszystkich użytkowników komputera
+Name: "{commonappdata}\{#MyAppName}"; Permissions: users-modify
 
 [InstallDelete]
 ; Przy aktualizacji: usuwa stary katalog _internal, żeby nie zostały w nim nieaktualne biblioteki
@@ -88,5 +92,5 @@ Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; IconFilen
 Filename: "{app}\{#MyAppExeName}"; Description: "Uruchom grę {#MyAppName}"; Flags: nowait postinstall skipifsilent
 
 [UninstallDelete]
-; Usuwa rekordy (rekordy.dat) z AppData użytkownika, który odinstalowuje grę
-Type: filesandordirs; Name: "{userappdata}\{#MyAppName}"
+; Usuwa wspólną tabelę rekordów wszystkich użytkowników (C:\ProgramData\mkTabliczka)
+Type: filesandordirs; Name: "{commonappdata}\{#MyAppName}"

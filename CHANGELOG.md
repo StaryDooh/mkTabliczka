@@ -4,6 +4,37 @@ Wszystkie istotne zmiany w aplikacji **Strzelnica „Mnożenie” (mkTabliczka)*
 
 ---
 
+## [1.6.0.0] – 2026-11-03
+
+### Dodano
+
+- Armatka na dole ekranu: obrotowa lufa podąża za myszką, a strzał wywołuje odrzut i błysk z wylotu.
+- Celownik w miejscu kursora myszy. Gdy kursor jest poniżej zasięgu lufy, celownik staje się szary.
+
+### Zmieniono
+
+- Podczas gry kursor myszy jest ukryty; wraca w menu, przy wpisywaniu imienia i na ekranie końca gry.
+- Działanie do rozwiązania jest wyświetlane na tablicy w podstawie armatki.
+- Kliknięcie poniżej zasięgu lufy oddaje strzał pod najmniejszym możliwym kątem zamiast go blokować.
+
+---
+
+## [1.5.0.1] – 2026-11-02
+
+### Zmieniono
+
+- Tabela 10 najlepszych wyników jest wspólna dla wszystkich użytkowników komputera (`C:\ProgramData\mkTabliczka`) zamiast osobnej dla każdego konta Windows.
+- Rekordy zapisane w poprzedniej wersji są automatycznie dołączane do wspólnej tabeli przy pierwszym uruchomieniu gry na danym koncie.
+- Odinstalowanie gry usuwa wspólną tabelę rekordów.
+
+### Naprawiono
+
+- Przerwany zapis (np. wyłączenie komputera) nie może już uszkodzić pliku rekordów.
+- Rekord zapisany przez innego użytkownika nie jest nadpisywany przy zapisie nowego wyniku.
+- Brak uprawnień do zapisu rekordów nie przerywa gry.
+
+---
+
 ## [1.5.0.0] – 2026-11-02
 
 Pierwsze wydanie opublikowane na GitHubie.
