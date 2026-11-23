@@ -2,8 +2,8 @@
 VSVersionInfo(
   ffi=FixedFileInfo(
     # Wersja pliku i produktu (musi składać się z 4 liczb oddzielonych przecinkami)
-    filevers=(1, 6, 0, 0),
-    prodvers=(1, 6, 0, 0),
+    filevers=(1, 7, 0, 0),
+    prodvers=(1, 7, 0, 0),
     mask=0x3f,
     flags=0x0,
     OS=0x40004,
@@ -17,13 +17,13 @@ VSVersionInfo(
       StringTable(
         u'041504b0', # Kod 0415 oznacza język polski
         [StringStruct(u'CompanyName', u'Krzysztof Markowski'),
-        StringStruct(u'FileDescription', u'Tabliczka mnożenia'),
-        StringStruct(u'FileVersion', u'1.6.0.0'),
-        StringStruct(u'InternalName', u'Tabliczka'),
+        StringStruct(u'FileDescription', u'mkTabliczka'),
+        StringStruct(u'FileVersion', u'1.7.0.0'),
+        StringStruct(u'InternalName', u'mkTabliczka'),
         StringStruct(u'LegalCopyright', u'Krzysztof Markowski'),
         StringStruct(u'OriginalFilename', u'tabliczka.exe'),
         StringStruct(u'ProductName', u'mkTabliczka'),
-        StringStruct(u'ProductVersion', u'1.6.0.0')])
+        StringStruct(u'ProductVersion', u'1.7.0.0')])
       ]), 
     VarFileInfo([VarStruct(u'Translation', [1045, 1200])]) # 1045 to kod języka polskiego
   ]

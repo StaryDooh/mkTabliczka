@@ -1,4 +1,4 @@
-# Strzelnica „Mnożenie” (mkTabliczka)
+# mkTabliczka
 
 Gra edukacyjna do ćwiczenia tabliczki mnożenia.
 
@@ -10,7 +10,7 @@ Gra jest przeznaczona dla uczniów szkoły podstawowej i sprawdza się zarówno 
 
 ## Instalacja
 
-1. Pobierz najnowszy plik instalacyjny `Setup_mkTabliczka_<wersja>.exe` (np. `Setup_mkTabliczka_1.6.0.0.exe`).
+1. Pobierz najnowszy plik instalacyjny `Setup_mkTabliczka_<wersja>.exe` (np. `Setup_mkTabliczka_1.7.0.0.exe`).
 2. Uruchom go i postępuj zgodnie z instrukcjami na ekranie.
 3. Grę uruchomisz skrótem **mkTabliczka** z Menu Start lub z Pulpitu.
 
@@ -28,7 +28,7 @@ Wymagania: Windows 10 lub 11 (64-bitowy). Instalacja wymaga uprawnień administr
 | Enter | Zatwierdzenie imienia w tabeli rekordów |
 | ESC | Wyjście z gry |
 
-Podczas gry kursor myszy zamienia się w celownik, a armatka obraca lufę w jego stronę. Czerwony laser pokazuje, dokąd poleci pocisk. Pociski odbijają się od bocznych i górnej krawędzi ekranu, więc kulki można trafiać także „z odbicia”.
+Podczas gry kursor myszy zamienia się w celownik, a armatka obraca lufę w jego stronę. Na poziomach 1–3 czerwony laser pokazuje, dokąd poleci pocisk. Na poziomie 4 trzeba celować bez jego pomocy. Pociski odbijają się od bocznych i górnej krawędzi ekranu, więc kulki można trafiać także „z odbicia”.
 
 ---
 
@@ -58,7 +58,7 @@ Udziel **20 poprawnych odpowiedzi z rzędu**, a tempo gry spadnie i odzyskasz je
 | 1 | 0–4 | do 30 | wolne |
 | 2 | 5–14 | do 50 | umiarkowane |
 | 3 | 15–24 | do 100 | szybsze |
-| 4 | od 25 | do 100 | rośnie z każdym punktem |
+| 4 | od 25 | do 100 | rośnie z każdym punktem, bez lasera |
 
 Na kulkach z błędnymi odpowiedziami pojawiają się liczby podobne do prawidłowego wyniku, dlatego warto liczyć, a nie zgadywać.
 

@@ -1,6 +1,29 @@
 # Rejestr zmian
 
-Wszystkie istotne zmiany w aplikacji **Strzelnica „Mnożenie” (mkTabliczka)** są opisywane w tym pliku.
+Wszystkie istotne zmiany w aplikacji **mkTabliczka** są opisywane w tym pliku.
+
+Format oparty jest na [Keep a Changelog](https://keepachangelog.com/pl/1.1.0/).
+Nowe wersje dopisuj na górze, pod sekcją „Nieopublikowane”.
+
+---
+
+## [Nieopublikowane]
+
+### Dodano
+
+### Zmieniono
+
+### Naprawiono
+
+---
+
+## [1.7.0.0] – 2026-11-23
+
+### Zmieniono
+
+- Kulki spadają wolniej na wszystkich poziomach, a przyspieszanie na poziomie 4 jest łagodniejsze i ma górną granicę.
+- Na poziomie 4 laser celowniczy nie jest wyświetlany — trzeba celować samodzielnie. Ekran awansu na poziom 4 informuje o tym gracza.
+- Program nazywa się teraz „mkTabliczka” (wcześniej Strzelnica „Mnożenie”) — na ekranie gry i we właściwościach pliku.
 
 ---
 
@@ -61,3 +84,11 @@ Pierwsze wydanie opublikowane na GitHubie.
 - Licznik poziomu zatrzymywał się na 3, mimo że gra przechodziła na poziom 4.
 - Wyjście z gry (ESC) podczas wpisywania imienia powodowało utratę rekordu.
 - Kółko myszy na ekranie startowym przypadkowo rozpoczynało grę.
+
+---
+
+[Nieopublikowane]: #
+[1.7.0.0]: #
+[1.6.0.0]: #
+[1.5.0.1]: #
+[1.5.0.0]: #

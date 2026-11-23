@@ -7,8 +7,8 @@ import json
 import base64
 
 # --- Wersja i Nazwa Gry ---
-APP_VERSION = "1.6.0.0"
-GAME_TITLE = f"Strzelnica \"Mnożenie\" v{APP_VERSION}"
+APP_VERSION = "1.7.0.0"
+GAME_TITLE = f"mkTabliczka v{APP_VERSION}"
 
 # --- Ścieżki do zasobów (działa też po spakowaniu PyInstallerem) ---
 def resource_path(name):
@@ -141,6 +141,18 @@ LASER_COLOR = (255, 0, 0, 120)
 BULLET_BOUNCE_SPEED = 12
 MAX_BULLET_BOUNCES = 5      # tyle samo odbić, ile pokazuje laser
 MIN_AIM_DEG = 12            # najmniejszy kąt lufy nad poziomem (w stopniach)
+LASER_MAX_LEVEL = 3         # laser celowniczy widoczny tylko do tego poziomu
+
+# Prędkość spadania kulek (piksele na klatkę): (min, max) dla poziomów 1-4
+LEVEL_SPEEDS = {
+    1: (0.35, 0.55),
+    2: (0.50, 0.75),
+    3: (0.65, 0.95),
+    4: (0.80, 1.10),
+}
+LEVEL4_BOOST_PER_POINT = 0.02   # przyspieszenie na poziomie 4 za każdy punkt powyżej 25
+LEVEL4_BOOST_MAX = 0.80         # górna granica tego przyspieszenia
+MIN_SPEED = 0.30                # najwolniejsze możliwe tempo (po uldze za serie)
 RECOIL_TIME = 120           # ms - czas odrzutu lufy po strzale
 FLASH_TIME = 80             # ms - czas błysku z lufy
 
@@ -349,14 +361,13 @@ class Game:
         return 30 if level == 1 else (50 if level == 2 else 100)
 
     def get_speed(self, level):
-        if level == 1: base_speed = random.uniform(0.4, 0.7)
-        elif level == 2: base_speed = random.uniform(0.6, 0.9)
-        elif level == 3: base_speed = random.uniform(0.8, 1.2)
-        else:
-            speed_boost = max(0, (self.score - 25) * 0.03)
-            base_speed = random.uniform(1.0 + speed_boost, 1.4 + speed_boost)
+        low, high = LEVEL_SPEEDS.get(level, LEVEL_SPEEDS[4])
+        if level >= 4:
+            boost = min(LEVEL4_BOOST_MAX, max(0, (self.score - 25) * LEVEL4_BOOST_PER_POINT))
+            low, high = low + boost, high + boost
+        base_speed = random.uniform(low, high)
         # Odejmujemy "ulgę" wywalczoną przez poprawne odpowiedzi
-        return max(0.4, base_speed - self.speed_relief)
+        return max(MIN_SPEED, base_speed - self.speed_relief)
 
     def generate_problem(self):
         level = self.get_level()
@@ -719,6 +730,9 @@ class Game:
             msg2 = font_large.render(f"PRZECHODZISZ NA POZIOM {self.current_level}", True, WHITE)
             screen.blit(msg1, msg1.get_rect(center=(WIDTH // 2, HEIGHT // 2 - 40)))
             screen.blit(msg2, msg2.get_rect(center=(WIDTH // 2, HEIGHT // 2 + 40)))
+            if self.current_level == LASER_MAX_LEVEL + 1:
+                msg3 = font_medium.render("Od teraz celujesz bez lasera!", True, YELLOW)
+                screen.blit(msg3, msg3.get_rect(center=(WIDTH // 2, HEIGHT // 2 + 110)))
 
         elif self.state == 'MASTER_STREAK':
             msg1 = font_huge.render("MISTRZOWSKA SERIA!!!", True, YELLOW)
@@ -740,7 +754,11 @@ class Game:
             screen.blit(msg_eq, msg_eq.get_rect(center=(WIDTH // 2, HEIGHT // 2 + 50)))
 
         elif self.state in ['PLAYING', 'CHALLENGE_MODE']:
-            self.calculate_laser_line(mouse_pos)
+            # Od poziomu 3 gra się bez lasera - trzeba celować samodzielnie
+            if self.get_level() <= LASER_MAX_LEVEL:
+                self.calculate_laser_line(mouse_pos)
+            else:
+                self.laser_line_segments = []
             if self.laser_line_segments:
                 laser_surface.fill((0, 0, 0, 0))
                 for seg in self.laser_line_segments:

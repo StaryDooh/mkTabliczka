@@ -1,5 +1,5 @@
 ﻿; =========================================================
-;  Instalator gry Strzelnica "Mnożenie" (mkTabliczka)
+;  Instalator gry mkTabliczka
 ;  Wymaga wcześniejszej kompilacji w trybie --onedir:
 ;    dist\tabliczka\tabliczka.exe
 ;    dist\tabliczka\_internal\...
@@ -7,7 +7,7 @@
 ; =========================================================
 
 #define MyAppName      "mkTabliczka"
-#define MyAppVersion   "1.6.0.0"
+#define MyAppVersion   "1.7.0.0"
 #define MyAppPublisher "Krzysztof Markowski"
 #define MyAppExeName   "tabliczka.exe"
 #define MyBuildDir     "dist\tabliczka"
